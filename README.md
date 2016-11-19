@@ -3,10 +3,13 @@
 ```
 gem install optparse
 gem install mechanize
+gem install rest-client
+gem install activesupport -v "=4.1.2"
 ```
 ## Set up environment variables
 ```
 export SOMATIC_API_KEY='your somatic_api_key pasted here'
+export SOMATIC_ORG_API_KEY='your somatic_api_key pasted here'
 export SOMATIC_ENV=production
 ```
 ## Usage
