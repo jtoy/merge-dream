@@ -67,7 +67,6 @@ module Somatic
         cmd = "curl --fail -X POST -F api_key=#{ENV['SOMATIC_API_KEY']} "
         params.each do | k,v| 
           if v.kind_of?(String) && ::File.exists?(v) #hack,only files here
-            result = Somatic::File.hash_or_false?(v)
             line = "-F #{k}=@#{v} "
             cmd += line
           elsif v.present?
