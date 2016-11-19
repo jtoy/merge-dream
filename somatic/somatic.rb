@@ -6,10 +6,6 @@ if ENV['SOMATIC_API_KEY'].blank?
   puts "SOMATIC_API_KEY not set"
   exit
 end
-if ENV['SOMATIC_ORG_API_KEY'].blank?
-  puts "SOMATIC_ORG_API_KEY not set"
-  exit
-end
 puts "SOMATIC_ENV:#{ENV['SOMATIC_ENV']}"
 #from http://stackoverflow.com/questions/3047007/flattening-hash-into-string-in-ruby
 class Hash
@@ -23,28 +19,13 @@ class Hash
   end
 end
 module Somatic
-  class ModelProject
-    def self.create_model_project opts
-      RestClient.post("#{Somatic::Data.api_url}/internal_api/model_project_create",opts.merge({api_key:ENV['SOMATIC_ORG_API_KEY']}))
-    end
-  end
   class Data
-    def self.create_dataset opts
-      RestClient.post("#{api_url}/internal_api/create_data_set",opts)
-    end
     def self.api_url
       if ENV['SOMATIC_ENV'] == "production"
         "http://www.somatic.io/"
       else
         "http://localhost:3000/"
       end
-    end
-    def random_image_url category=nil
-      "https://unsplash.it/600/600/?random"
-    end
-    def subreddit_image_url
-    end
-    def twitter_image_url
     end
     def self.parse_opts!
       #this is for bvlc googlenet's architect,  we want every image to print
@@ -75,38 +56,8 @@ module Somatic
     end
       
   end
-  class File
-    def self.file_hash file
-      Digest::SHA1.file(file).hexdigest
-    end
-    def self.has_file? file
-      hash = self.file_hash file
-      url = "#{Somatic::Data.api_url}/internal_api/file_lookup?hash=#{hash}&api_key=#{ENV['SOMATIC_API_KEY']}"
-      j =JSON.parse(RestClient.get(url))
-      !!j['result'] 
-    end
-    def self.hash_or_false? file
-      hash = self.file_hash file
-      url = "#{Somatic::Data.api_url}/internal_api/file_lookup?hash=#{hash}&api_key=#{ENV['SOMATIC_API_KEY']}"
-      j =JSON.parse(RestClient.get(url))
-      if j && j['result'].present?
-        hash
-      else
-        false
-      end
-    end
-    def self.upload! file
-      result = hash_or_false? file
-      unless result
-      end
-    end
-  end
 
     class Model
-      def self.public_models
-        api_url = "#{Somatic::Data.api_url}/internal_api/models?api_key=#{ENV['SOMATIC_API_KEY']}"
-        j =JSON.parse(RestClient.get(api_url),symbolize_names:true)
-      end
       def make_api_call params,tags=nil
         api_url = "#{Somatic::Data.api_url}/api/v1/models/async_query"
         raise "model_id not set" if @model_id.blank?
@@ -117,11 +68,7 @@ module Somatic
         params.each do | k,v| 
           if v.kind_of?(String) && ::File.exists?(v) #hack,only files here
             result = Somatic::File.hash_or_false?(v)
-            if result
-              line = "-F #{k}=#{result} "
-            else
-              line = "-F #{k}=@#{v} "
-            end
+            line = "-F #{k}=@#{v} "
             cmd += line
           elsif v.present?
             cmd += "-F #{k}=#{v} "
@@ -204,20 +151,6 @@ module Somatic
         end
         default_inference_params.merge(opts).merge(hash)
       end
-    end
-    def api_info
-      return @api_info if @api_info
-      @api_server = "http://www.somatic.io"
-      @api_info = begin
-                     url = "#{@api_server}/internal_api/modelfile?id=#{@model_id}&api_key=#{ENV['SOMATIC_APIKEY']}"
-                     puts url
-                    j =JSON.parse(RestClient.get(url))
-                    j
-                  rescue Exception => e
-                    puts "WARNING: unable to connect to API"
-                    puts e
-                    {}
-                  end
     end
     def online_modelfile
       api_info
