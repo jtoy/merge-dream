@@ -40,7 +40,7 @@ images.each do |image|
   filename_count = 1
   classes.each do |class_value|
 
-    params = {"--image":filepath,"--class-to-show":class_value}
+    params = {"--image"=>filepath,"--class-to-show"=>class_value}
     puts "params: #{params}"
     example_id=somatic_model.make_api_call params,options[:tags]
     puts example_id
